@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- Pill & glass helpers --- */
+.pill { @apply rounded-full px-4 py-2 text-sm font-semibold transition; }
+.pill-ghost { @apply bg-white/70 backdrop-blur border border-slate-200 hover:bg-white; }
+.pill-active { @apply text-white bg-gradient-to-r from-emerald-500 to-emerald-600 shadow; }
+.brand-sub { letter-spacing: 0.2em; }
+
+/* Thin gradient line under the header (matches logo colors) */
+.header-gradient-line {
+  @apply h-[2px] w-full;
+  background: linear-gradient(90deg, #34d399, #06b6d4, #a3e635);
+}
+
+/* Optional soft background like your screenshot */
+.page-soft {
+  background: radial-gradient(1000px 400px at 80% -100px, rgba(0,0,0,0.05), transparent),
+              radial-gradient(700px 300px at -20% 0, rgba(255,255,255,0.7), transparent);
+}
+/* --- Pill & glass helpers --- */
+.pill { @apply rounded-full px-4 py-2 text-sm font-semibold transition; }
+.pill-ghost { @apply bg-white/70 backdrop-blur border border-slate-200 hover:bg-white; }
+
+/* Highlighted style you can reuse if needed */
+.pill-active { @apply text-white bg-gradient-to-r from-emerald-500 to-emerald-600 shadow; }
+
+.brand-sub { letter-spacing: 0.2em; }
+
+/* Thin gradient line under the header */
+.header-gradient-line {
+  @apply h-[2px] w-full;
+  background: linear-gradient(90deg, #34d399, #06b6d4, #a3e635);
+}
+.pill { @apply rounded-full px-4 py-2 text-sm font-semibold transition; }
+.pill-ghost { @apply bg-white/70 backdrop-blur border border-slate-200 hover:bg-white; }
+.pill-active { @apply text-white bg-gradient-to-r from-emerald-500 to-emerald-600 shadow; }
+.brand-sub { letter-spacing: 0.2em; }
+.header-gradient-line { @apply h-[2px] w-full; background: linear-gradient(90deg,#34d399,#06b6d4,#a3e635); }
