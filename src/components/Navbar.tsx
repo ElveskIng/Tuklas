@@ -38,8 +38,13 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', onDoc)
   }, [])
 
-  const username = name || (email ? email.split('@')[0] : null)
-  const isAdmin = (email || '').toLowerCase() === 'adming5@gmail.com' // ← only this account sees Admin
+  // Build a friendly display name
+  const usernameFromEmail = email ? email.split('@')[0] : null
+  const displayName = (name && name.trim()) || usernameFromEmail || 'Account'
+  const avatarInitial = (displayName[0] || 'U').toUpperCase()
+
+  // Only this account sees the Admin link in the menu
+  const isAdmin = (email || '').toLowerCase() === 'adming5@gmail.com'
 
   const goToHomeHash = (hash: '#reviews' | '#faqs' | '#about') => {
     setDrawerOpen(false)
@@ -69,8 +74,10 @@ export default function Navbar() {
         }}
       >
         {/* soft inner mist / highlight */}
-        <div className="absolute inset-0 pointer-events-none opacity-25"
-             style={{ background: 'radial-gradient(1200px 220px at 50% -60px, #ffffff 0%, rgba(255,255,255,0) 70%)' }} />
+        <div
+          className="absolute inset-0 pointer-events-none opacity-25"
+          style={{ background: 'radial-gradient(1200px 220px at 50% -60px, #ffffff 0%, rgba(255,255,255,0) 70%)' }}
+        />
         <div className="mx-auto max-w-7xl px-6 relative">
           <div className="h-16 flex items-center gap-3 text-white">
             {/* Brand */}
@@ -97,25 +104,32 @@ export default function Navbar() {
                 </button>
               ) : (
                 <>
-                  {/* Admin / Dashboard compact menu */}
+                  {/* User / menu pill */}
                   <div className="relative">
                     <button
                       onClick={() => setMenuOpen(v => !v)}
                       aria-expanded={menuOpen}
                       title={email ?? undefined}
-                      className="flex items-center gap-2 rounded-full bg-white text-slate-800 h-10 px-4 shadow-md border border-slate-200 hover:shadow-lg transition"
+                      className="flex items-center gap-2 rounded-full bg-white text-slate-800 h-10 px-4 shadow-md border border-slate-200 hover:shadow-lg transition max-w-[220px]"
                     >
                       <span className="grid place-items-center w-7 h-7 rounded-full bg-emerald-600 text-white text-sm font-bold">
-                        {username?.[0]?.toUpperCase() || 'U'}
+                        {avatarInitial}
                       </span>
-                      <span className="font-semibold">ADMIN</span>
+                      {/* show actual user name here (not "ADMIN") */}
+                      <span className="font-semibold truncate max-w-[110px] sm:max-w-[160px]">
+                        {displayName}
+                      </span>
                       <svg width="14" height="14" viewBox="0 0 24 24" className="text-slate-500">
-                        <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+                        <path fill="currentColor" d="M7 10l5 5 5-5z" />
                       </svg>
                     </button>
 
                     {menuOpen && (
-                      <div className="absolute right-0 top-12 w-52 rounded-xl border border-slate-200 bg-white text-slate-800 shadow-xl p-2">
+                      <div className="absolute right-0 top-12 w-56 rounded-xl border border-slate-200 bg-white text-slate-800 shadow-xl p-2">
+                        <div className="px-3 py-2 text-xs text-slate-500">
+                          Signed in as
+                          <div className="font-medium text-slate-700 truncate">{email}</div>
+                        </div>
                         <button
                           onClick={() => { setMenuOpen(false); navigate('/dashboard') }}
                           className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 text-sm font-medium"
@@ -153,7 +167,7 @@ export default function Navbar() {
                   >
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                          className="text-white/90">
-                      <path d="M4 7h16M4 12h16M4 17h16" strokeWidth="2" strokeLinecap="round"/>
+                      <path d="M4 7h16M4 12h16M4 17h16" strokeWidth="2" strokeLinecap="round" />
                     </svg>
                   </button>
                 </>
@@ -187,7 +201,7 @@ export default function Navbar() {
                 <button onClick={() => setDrawerOpen(false)} aria-label="Close menu"
                         className="rounded-md hover:bg-white/10 p-2">
                   <svg width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                   </svg>
                 </button>
               </div>
