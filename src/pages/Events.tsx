@@ -16,9 +16,7 @@ type EventRow = {
 }
 
 const LEVEL_DAYS: Record<LevelKey, number> = { beginner: 7, intermediate: 10, expert: 14 }
-
-/** ⏱️ Session length — tweak this if needed (in minutes) */
-const SESSION_MINUTES = 90
+const SESSION_MINUTES = 120 // 2-hour blocks for both time slots
 
 const TEAMS_LINK_BY_PROGRAM: Record<string, string> = {
   vdaa: 'https://teams.microsoft.com',
@@ -30,65 +28,24 @@ const GENERIC_TEAMS_LINK = 'https://teams.microsoft.com'
 
 const TITLE_POOL: Record<string, Record<LevelKey, string[]>> = {
   vdaa: {
-    beginner: [
-      'Intro to Analytics • Day','Spreadsheets Sprint • Day','Charts & Filters • Day',
-      'Data Accuracy Lab • Day','Sheets & Excel Jumpstart • Day','Mini Dashboard Practice • Day','QA & Recap • Day',
-    ],
-    intermediate: [
-      'Data Cleaning Lab • Day','Pivot Tables Power • Day','Stats Basics • Day','Dashboard Build • Day',
-      'Trends & Patterns • Day','Viz Storytelling • Day','Review & Q&A • Day','Practice Clinic • Day',
-      'Case Study • Day','Midterm Build • Day',
-    ],
-    expert: [
-      'Power BI / Tableau Intro • Day','Automation for Insights • Day','Decision Support • Day','Large Dataset Skills • Day',
-      'Advanced Modeling • Day','Performance Tuning • Day','Dashboard Polish • Day','Final Lab • Day',
-      'Capstone Review • Day','Exec Storytelling • Day','Data Ops Tips • Day','Masterclass • Day','Case Defense • Day','Wrap-up & Cert • Day',
-    ],
+    beginner: ['Intro to Analytics • Day','Spreadsheets Sprint • Day','Charts & Filters • Day','Data Accuracy Lab • Day','Sheets & Excel Jumpstart • Day','Mini Dashboard Practice • Day','QA & Recap • Day'],
+    intermediate: ['Data Cleaning Lab • Day','Pivot Tables Power • Day','Stats Basics • Day','Dashboard Build • Day','Trends & Patterns • Day','Viz Storytelling • Day','Review & Q&A • Day','Practice Clinic • Day','Case Study • Day','Midterm Build • Day'],
+    expert: ['Power BI / Tableau Intro • Day','Automation for Insights • Day','Decision Support • Day','Large Dataset Skills • Day','Advanced Modeling • Day','Performance Tuning • Day','Dashboard Polish • Day','Final Lab • Day','Capstone Review • Day','Exec Storytelling • Day','Data Ops Tips • Day','Masterclass • Day','Case Defense • Day','Wrap-up & Cert • Day'],
   },
   vadmin: {
-    beginner: [
-      'Admin Roles 101 • Day','Email Mastery • Day','Docs & Files • Day','Calendars & Tasks • Day',
-      'Meetings Setup • Day','Toolbox Time • Day','Recap • Day',
-    ],
-    intermediate: [
-      'Workflow Design • Day','Client Comms • Day','Records Mgmt • Day','Deadlines Control • Day',
-      'Problem Solving • Day','Process QA • Day','Ops Clinic • Day','Docs Review • Day','Playbook Build • Day','Retro • Day',
-    ],
-    expert: [
-      'Project Coordination • Day','Reports Writing • Day','CRM & Data • Day','Process Improvement • Day',
-      'Stakeholder Sync • Day','Automation • Day','Admin Systematize • Day','Ops Scaling • Day',
-      'Leadership Support • Day','Final Review • Day','Handoff • Day','Capstone • Day','Mastery • Day','Graduation • Day',
-    ],
+    beginner: ['Admin Roles 101 • Day','Email Mastery • Day','Docs & Files • Day','Calendars & Tasks • Day','Meetings Setup • Day','Toolbox Time • Day','Recap • Day'],
+    intermediate: ['Workflow Design • Day','Client Comms • Day','Records Mgmt • Day','Deadlines Control • Day','Problem Solving • Day','Process QA • Day','Ops Clinic • Day','Docs Review • Day','Playbook Build • Day','Retro • Day'],
+    expert: ['Project Coordination • Day','Reports Writing • Day','CRM & Data • Day','Process Improvement • Day','Stakeholder Sync • Day','Automation • Day','Admin Systematize • Day','Ops Scaling • Day','Leadership Support • Day','Final Review • Day','Handoff • Day','Capstone • Day','Mastery • Day','Graduation • Day'],
   },
   veditorial: {
-    beginner: [
-      'Editorial Basics • Day','Grammar Essentials • Day','Formatting • Day','Fact-Checking • Day',
-      'Editing Tools • Day','Style Drill • Day','Wrap-Up • Day',
-    ],
-    intermediate: [
-      'Copyedit Lab • Day','Style Guides • Day','Collab Docs • Day','Editorial Calendar • Day',
-      'Consistency Checks • Day','Peer Review • Day','Workflow Clinic • Day','Rewrite Skills • Day','Quality Gate • Day','Retro • Day',
-    ],
-    expert: [
-      'Advanced Editing • Day','SEO Writing • Day','Project Mgmt • Day','Multi-Writer Handling • Day',
-      'Editorial Strategy • Day','Analytics for Editors • Day','Voice & Tone • Day','Longform Clinic • Day',
-      'Publication Day • Day','Postmortem • Day','Toolkit • Day','Coaching • Day','Capstone • Day','Comm Debrief • Day',
-    ],
+    beginner: ['Editorial Basics • Day','Grammar Essentials • Day','Formatting • Day','Fact-Checking • Day','Editing Tools • Day','Style Drill • Day','Wrap-Up • Day'],
+    intermediate: ['Copyedit Lab • Day','Style Guides • Day','Collab Docs • Day','Editorial Calendar • Day','Consistency Checks • Day','Peer Review • Day','Workflow Clinic • Day','Rewrite Skills • Day','Quality Gate • Day','Retro • Day'],
+    expert: ['Advanced Editing • Day','SEO Writing • Day','Project Mgmt • Day','Multi-Writer Handling • Day','Editorial Strategy • Day','Analytics for Editors • Day','Voice & Tone • Day','Longform Clinic • Day','Publication Day • Day','Postmortem • Day','Toolkit • Day','Coaching • Day','Capstone • Day','Comm Debrief • Day'],
   },
   vmarketing: {
-    beginner: [
-      'Digital Marketing Intro • Day','Platforms Tour • Day','Scheduling Tools • Day','Canva Basics • Day',
-      'Engagement 101 • Day','Copy Starter • Day','Wrap-Up • Day',
-    ],
-    intermediate: [
-      'Analytics Basics • Day','Copywriting • Day','Email Campaigns • Day','SEO Basics • Day',
-      'Brand Consistency • Day','Content Ops • Day','Performance Review • Day','A/B Ideas • Day','Reporting • Day','Retro • Day',
-    ],
-    expert: [
-      'Campaign Strategy • Day','Paid Ads • Day','KPI Deep Dive • Day','Influencer Collab • Day',
-      'Funnel Optimization • Day','Attribution • Day','Advanced Reporting • Day','Growth Loops • Day',
-      'Creative Review • Day','Ops Scaling • Day','Quarter Plan • Day','Pitch Prep • Day','Capstone • Day','Summit • Day',
-    ],
+    beginner: ['Digital Marketing Intro • Day','Platforms Tour • Day','Scheduling Tools • Day','Canva Basics • Day','Engagement 101 • Day','Copy Starter • Day','Wrap-Up • Day'],
+    intermediate: ['Analytics Basics • Day','Copywriting • Day','Email Campaigns • Day','SEO Basics • Day','Brand Consistency • Day','Content Ops • Day','Performance Review • Day','A/B Ideas • Day','Reporting • Day','Retro • Day'],
+    expert: ['Campaign Strategy • Day','Paid Ads • Day','KPI Deep Dive • Day','Influencer Collab • Day','Funnel Optimization • Day','Attribution • Day','Advanced Reporting • Day','Growth Loops • Day','Creative Review • Day','Ops Scaling • Day','Quarter Plan • Day','Pitch Prep • Day','Capstone • Day','Summit • Day'],
   },
 }
 
@@ -131,14 +88,38 @@ function isApproved(row:any): boolean {
   const stamped = !!row?.approved_at || !!row?.reviewed_at || !!row?.verified_at
   return flag || stamped || ['approved','approve','accepted','ok','paid','verified'].includes(status)
 }
+
+/** Read chosen start from ref_text like `start:<ISO>; slot:<08:00-10:00>` */
 function pickStartISO(row:any): string {
+  const rt: string = row?.ref_text || ''
+  const m = rt.match(/start:([0-9T:\-\.Z\+]+)/i)
+  if (m) return new Date(m[1]).toISOString()
   const t = row?.approved_at || row?.reviewed_at || row?.verified_at || row?.created_at || new Date().toISOString()
   return new Date(t).toISOString()
 }
+function pickSlot(row:any): '08:00-10:00'|'18:00-20:00' {
+  const rt: string = row?.ref_text || ''
+  const m = rt.match(/slot:(08:00-10:00|18:00-20:00)/i)
+  return (m ? (m[1] as any) : '08:00-10:00')
+}
 function addMinutes(d: Date, mins: number) { const x = new Date(d); x.setMinutes(x.getMinutes()+mins); return x }
+function addDays(d: Date, days: number) { const x = new Date(d); x.setDate(x.getDate()+days); return x }
 
-function buildConsecutiveDaysWithRandomTitles(paymentId:string,startISO:string,days:number,programId:string,level:LevelKey): EventRow[] {
-  const base = new Date(startISO); base.setHours(10,0,0,0)
+/** Simple live clock formatting */
+function msToClock(ms: number) {
+  const sec = Math.max(0, Math.floor(ms / 1000))
+  const d = Math.floor(sec / 86400)
+  const h = Math.floor((sec % 86400) / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  const pad = (n:number)=>String(n).padStart(2,'0')
+  return d>0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`
+}
+
+function buildConsecutiveDaysWithRandomTitles(paymentId:string,startISO:string,slot:string,days:number,programId:string,level:LevelKey): EventRow[] {
+  const base = new Date(startISO)
+  if (slot === '08:00-10:00') base.setHours(8,0,0,0); else base.setHours(18,0,0,0)
+
   const poolAll = TITLE_POOL[programId]?.[level] || ['Training Session • Day']
   const titles = shuffleDeterministic(poolAll, `${paymentId}-${startISO}-${programId}-${level}`)
   const rows: EventRow[] = []
@@ -165,37 +146,102 @@ async function fetchApprovedPayments(userId: string) {
   return { approved: (data ?? []).filter(isApproved) }
 }
 
+type WindowInfo = {
+  id: string
+  programId: string
+  level: LevelKey
+  slot: '08:00-10:00'|'18:00-20:00'
+  startISO: string
+  endISO: string
+}
+
 /* ---------------------------- Component ---------------------------- */
 export default function Events() {
   const [loading, setLoading] = useState(true)
   const [rows, setRows] = useState<EventRow[]>([])
+  const [windows, setWindows] = useState<WindowInfo[]>([])
+  const [nowMs, setNowMs] = useState(() => Date.now())
+
+  // live tick for countdowns
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [])
 
   useEffect(() => {
     let alive = true
     ;(async () => {
       setLoading(true)
       const me = (await supabase.auth.getUser()).data.user?.id
-      if (!me) { setRows([]); setLoading(false); return }
+      if (!me) { setRows([]); setWindows([]); setLoading(false); return }
 
       const { approved } = await fetchApprovedPayments(me)
       if (!alive) return
-      if (!approved.length) { setRows([]); setLoading(false); return }
+      if (!approved.length) { setRows([]); setWindows([]); setLoading(false); return }
 
-      const built: EventRow[] = []
-      for (const r of approved) {
+      // Build per-payment window (start/end)
+      const w: WindowInfo[] = approved.map((r:any) => {
         const programId = normalizeProgramId(r)
-        const lvl = normalizeLevel(r)
-        const nDays = LEVEL_DAYS[lvl]
-        built.push(...buildConsecutiveDaysWithRandomTitles(r.id ?? String(Math.random()), pickStartISO(r), nDays, programId, lvl))
+        const level = normalizeLevel(r)
+        const startISO = pickStartISO(r)
+        const slot = pickSlot(r)
+        const days = LEVEL_DAYS[level]
+        // end at the end of last session block
+        const endDate = addMinutes(addDays(new Date(startISO), days-1), slot === '08:00-10:00' ? 120 : 120)
+        return {
+          id: r.id ?? String(Math.random()),
+          programId,
+          level,
+          slot,
+          startISO: new Date(startISO).toISOString(),
+          endISO: endDate.toISOString(),
+        }
+      })
+
+      // Build events ONLY for windows that already started
+      const built: EventRow[] = []
+      for (const win of w) {
+        if (Date.now() >= +new Date(win.startISO)) {
+          built.push(
+            ...buildConsecutiveDaysWithRandomTitles(
+              win.id, win.startISO, win.slot, LEVEL_DAYS[win.level], win.programId, win.level
+            )
+          )
+        }
       }
       built.sort((a,b)=>a.dateISO.localeCompare(b.dateISO))
-      setRows(built); setLoading(false)
+
+      setWindows(w)
+      setRows(built)
+      setLoading(false)
     })()
     return () => { alive = false }
   }, [])
 
   const hasEvents = useMemo(() => rows.length > 0, [rows])
-  const now = new Date()
+  const now = new Date(nowMs)
+
+  // Derived panels
+  const statuses = useMemo(() => {
+    return windows.map(win => {
+      const startMs = +new Date(win.startISO)
+      const endMs = +new Date(win.endISO)
+      const started = nowMs >= startMs
+      const ended = nowMs > endMs
+      const levelLabel = win.level === 'beginner' ? 'Beginner' : win.level === 'intermediate' ? 'Intermediate' : 'Expert'
+      return {
+        id: win.id,
+        levelLabel,
+        programId: win.programId.toUpperCase(),
+        startDisplay: formatLocal(new Date(win.startISO)),
+        slot: win.slot,
+        started,
+        ended,
+        untilStart: started ? 0 : (startMs - nowMs),
+        untilEnd: ended ? 0 : (endMs - nowMs),
+      }
+    })
+  }, [windows, nowMs])
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
@@ -203,10 +249,39 @@ export default function Events() {
       <div className="mt-2 text-sm text-slate-600">
         {loading
           ? 'Loading your training sessions…'
-          : hasEvents
-          ? 'Your sessions are generated from your approved payments.'
-          : 'No approved payments yet — no events to show.'}
+          : 'Your sessions are generated from your approved payments and scheduled start.'}
       </div>
+
+      {/* Status panel: starts/ends countdowns */}
+      {statuses.length > 0 && (
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {statuses.map(s => (
+            <div key={s.id} className="rounded-xl border p-3 bg-white">
+              <div className="text-sm font-semibold">
+                {s.programId} • {s.levelLabel}
+              </div>
+              {!s.started ? (
+                <div className="text-sm mt-1">
+                  <span className="text-slate-600">Starts on</span>{' '}
+                  <span className="font-medium">{s.startDisplay} ({s.slot})</span>
+                  <div className="mt-1 text-emerald-700 text-xs font-semibold">
+                    Starts in {msToClock(s.untilStart)}
+                  </div>
+                </div>
+              ) : s.ended ? (
+                <div className="text-sm mt-1 text-rose-600 font-semibold">
+                  Promo ended — please pay again to join a new batch.
+                </div>
+              ) : (
+                <div className="text-sm mt-1">
+                  <span className="text-slate-600">Promo ends in</span>{' '}
+                  <span className="text-emerald-700 font-semibold">{msToClock(s.untilEnd)}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="mt-6 bg-white border border-slate-200 rounded-xl overflow-hidden">
         <table className="w-full text-sm">
@@ -219,10 +294,12 @@ export default function Events() {
             </tr>
           </thead>
           <tbody>
-            {!hasEvents ? (
+            {(!hasEvents && !loading) ? (
               <tr>
                 <td className="p-6 text-slate-500" colSpan={4}>
-                  Nothing scheduled. Make a payment (and have it approved) to unlock your training calendar.
+                  {statuses.some(s => !s.started && !s.ended)
+                    ? 'Your events will appear automatically once your chosen start date/time arrives.'
+                    : 'No scheduled events.'}
                 </td>
               </tr>
             ) : (

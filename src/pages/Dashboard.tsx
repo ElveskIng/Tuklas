@@ -14,6 +14,7 @@ type ProofRow = {
   status: 'pending' | 'approved' | 'rejected'
   approved_at?: string | null
   created_at: string
+  ref_text?: string | null
 }
 
 type EventRow = {
@@ -35,16 +36,26 @@ const PROGRAM_META: Record<string, { title: string }> = {
 }
 
 const LEVEL_DAYS: Record<LevelKey, number> = { beginner: 7, intermediate: 10, expert: 14 }
-const SESSION_MINUTES = 90
+const SESSION_MINUTES = 120
 const TEAMS_LINK = 'https://teams.microsoft.com'
 
-/* ---------- tiny helpers ---------- */
+/* ---------- helpers ---------- */
 const fmtAMPM = (d: Date) =>
   d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: 'numeric', minute: '2-digit', hour12: true })
 
 const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
 function addMinutes(d: Date, mins: number) { const x = new Date(d); x.setMinutes(x.getMinutes() + mins); return x }
+function addDays(d: Date, n: number) { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+function msToClock(ms: number) {
+  const sec = Math.max(0, Math.floor(ms / 1000))
+  const d = Math.floor(sec / 86400)
+  const h = Math.floor((sec % 86400) / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  const s = sec % 60
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return d > 0 ? `${d}d ${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(h)}:${pad(m)}:${pad(s)}`
+}
 
 function normalizeProgramId(raw: any): string {
   const v = String(raw ?? '').toLowerCase()
@@ -62,12 +73,22 @@ function normalizeLevel(raw: any): LevelKey {
   if (v.startsWith('exp')) return 'expert'
   return 'beginner'
 }
+
+/** Read chosen start from ref_text like `start:<ISO>; slot:<08:00-10:00|18:00-20:00>` */
 function pickStartISO(row: any): string {
+  const rt: string = row?.ref_text || ''
+  const m = rt.match(/start:([0-9T:\-\.Z\+]+)/i)
+  if (m) return new Date(m[1]).toISOString()
   const t = row?.approved_at || row?.created_at || new Date().toISOString()
   return new Date(t).toISOString()
 }
+function pickSlot(row: any): '08:00-10:00' | '18:00-20:00' {
+  const rt: string = row?.ref_text || ''
+  const m = rt.match(/slot:(08:00-10:00|18:00-20:00)/i)
+  return (m ? (m[1] as any) : '08:00-10:00')
+}
 
-/* sample titles – short for dashboard */
+/* sample titles – short for dashboard cards */
 const TITLES: Record<string, Record<LevelKey, string[]>> = {
   vdaa: {
     beginner: ['QA & Recap • Day','Charts & Filters • Day','Sheets Jumpstart • Day','Data Accuracy • Day','Analytics Intro • Day','Spreadsheets Sprint • Day','Mini Dashboard • Day'],
@@ -83,8 +104,10 @@ function makeEventsForProof(p: ProofRow): EventRow[] {
   const program_id = normalizeProgramId(p.program_id)
   const level = normalizeLevel(p.level)
   const days = LEVEL_DAYS[level]
+
+  const slot = pickSlot(p)
   const base = new Date(pickStartISO(p))
-  base.setHours(10, 0, 0, 0) // daily 10:00 AM local
+  if (slot === '08:00-10:00') base.setHours(8,0,0,0); else base.setHours(18,0,0,0)
 
   const titles = TITLES[program_id]?.[level] ?? ['Training • Day']
   const rows: EventRow[] = []
@@ -104,15 +127,26 @@ function makeEventsForProof(p: ProofRow): EventRow[] {
   return rows
 }
 
+type ProgramWindow = {
+  programId: string
+  title: string
+  startISO: string
+  endISO: string
+  started: boolean
+  ended: boolean
+  untilStartMs: number
+  untilEndMs: number
+}
+
 /* ---------- Component ---------- */
 export default function Dashboard() {
   const [email, setEmail] = useState<string | null>(null)
   const [proofs, setProofs] = useState<ProofRow[]>([])
-  const [now, setNow] = useState(() => new Date())
+  const [nowMs, setNowMs] = useState(() => Date.now())
   const navigate = useNavigate()
 
   useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 1000)
+    const t = setInterval(() => setNowMs(Date.now()), 1000)
     return () => clearInterval(t)
   }, [])
 
@@ -123,74 +157,85 @@ export default function Dashboard() {
       if (!user) return
       const { data, error } = await supabase
         .from('payment_proofs')
-        .select('id,user_id,program_id,level,status,approved_at,created_at')
+        .select('id,user_id,program_id,level,status,approved_at,created_at,ref_text')
         .eq('user_id', user.id)
       if (!error && data) setProofs((data as any[]).filter(p => p.status === 'approved') as ProofRow[])
     })()
   }, [])
 
-  /* Programs the user currently has access to (unexpired) */
-  const programs = useMemo(() => {
-    const acc = new Map<string, { title: string, expiresAt: Date, remainingMs: number }>()
-    const nowMs = +now
+  /* Programs + windows (based on chosen start/slot) */
+  const programWindows: ProgramWindow[] = useMemo(() => {
+    const byProgram: Record<string, { startISO: string; endISO: string; title: string }> = {}
     for (const p of proofs) {
       const pid = normalizeProgramId(p.program_id)
       const lvl = normalizeLevel(p.level)
-      const start = new Date(pickStartISO(p))
-      const expiresAt = new Date(start); expiresAt.setDate(expiresAt.getDate() + LEVEL_DAYS[lvl])
-      const remainingMs = +expiresAt - nowMs
-      // pick latest expiry per program
-      const prev = acc.get(pid)
-      if (!prev || +expiresAt > +prev.expiresAt) {
-        acc.set(pid, { title: PROGRAM_META[pid]?.title ?? pid.toUpperCase(), expiresAt, remainingMs })
-      }
+      const startISO = new Date(pickStartISO(p)).toISOString()
+      // last day runs 2 hours to match session, so add (days-1) then +120 mins
+      const endISO = addMinutes(addDays(new Date(startISO), LEVEL_DAYS[lvl] - 1), 120).toISOString()
+      const title = PROGRAM_META[pid]?.title ?? pid.toUpperCase()
+      const prev = byProgram[pid]
+      if (!prev || +new Date(endISO) > +new Date(prev.endISO)) byProgram[pid] = { startISO, endISO, title }
     }
-    return Array.from(acc, ([id, v]) => ({ id, ...v }))
-  }, [proofs, now])
+    return Object.entries(byProgram).map(([programId, v]) => {
+      const startMs = +new Date(v.startISO)
+      const endMs = +new Date(v.endISO)
+      const started = nowMs >= startMs
+      const ended = nowMs > endMs
+      return {
+        programId,
+        title: v.title,
+        startISO: v.startISO,
+        endISO: v.endISO,
+        started,
+        ended,
+        untilStartMs: started ? 0 : startMs - nowMs,
+        untilEndMs: ended ? 0 : endMs - nowMs,
+      }
+    })
+  }, [proofs, nowMs])
 
-  /* Today’s events */
+  /* Today’s events (only once window started) */
   const todays = useMemo(() => {
-    const all: EventRow[] = proofs.flatMap(makeEventsForProof)
-    const kToday = dateKey(now)
-    return all
-      .filter(e => dateKey(new Date(e.dateISO)) === kToday)
-      .sort((a, b) => a.dateISO.localeCompare(b.dateISO))
-  }, [proofs, now])
+    const todayKey = dateKey(new Date(nowMs))
+    const activeProofs = proofs.filter(p => nowMs >= +new Date(pickStartISO(p)) && p.status === 'approved')
+    const all: EventRow[] = activeProofs.flatMap(makeEventsForProof)
+    return all.filter(e => dateKey(new Date(e.dateISO)) === todayKey).sort((a,b)=>a.dateISO.localeCompare(b.dateISO))
+  }, [proofs, nowMs])
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <h2 className="text-3xl font-extrabold">My Dashboard</h2>
       <p className="text-slate-600 mt-2">Welcome {email ?? 'user'} — here are your programs.</p>
 
-      {/* Programs */}
+      {/* Program cards with countdowns */}
       <div className="mt-6 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {programs.length === 0 ? (
+        {programWindows.length === 0 ? (
           <div className="col-span-full text-slate-600 text-sm">
             No active programs yet. Submit a payment in <span className="font-semibold">Programs</span> to unlock.
           </div>
         ) : (
-          programs.map(p => {
-            const expired = p.remainingMs <= 0
-            const daysLeft = Math.max(0, Math.ceil(p.remainingMs / 86400000))
-            return (
-              <article key={p.id} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-                <h3 className="font-bold text-lg">{p.title}</h3>
+          programWindows.map(p => (
+            <article key={p.programId} className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <h3 className="font-bold text-lg">{p.title}</h3>
+              {!p.started ? (
                 <p className="text-sm text-slate-600 mt-1">
-                  {expired ? (
-                    <span className="text-rose-600 font-medium">Expired — renew to continue.</span>
-                  ) : (
-                    <>Access active • <span className="font-semibold">{daysLeft} day{daysLeft !== 1 ? 's' : ''}</span> left</>
-                  )}
+                  Starts in <span className="font-semibold text-emerald-700">{msToClock(p.untilStartMs)}</span>
                 </p>
-                <button
-                  className={`mt-4 w-full px-4 py-2 rounded-lg font-semibold ${expired ? 'border' : 'bg-emerald-600 text-white'}`}
-                  onClick={() => expired ? navigate('/programs') : navigate(`/programs/${p.id}`)}
-                >
-                  {expired ? 'Renew' : 'Open'}
-                </button>
-              </article>
-            )
-          })
+              ) : p.ended ? (
+                <p className="text-sm text-rose-600 mt-1 font-medium">Expired — renew to continue.</p>
+              ) : (
+                <p className="text-sm text-slate-600 mt-1">
+                  Promo ends in <span className="font-semibold text-emerald-700">{msToClock(p.untilEndMs)}</span>
+                </p>
+              )}
+              <button
+                className={`mt-4 w-full px-4 py-2 rounded-lg font-semibold ${p.ended ? 'border' : 'bg-emerald-600 text-white'}`}
+                onClick={() => (p.ended ? navigate('/programs') : navigate(`/programs/${p.programId}`))}
+              >
+                {p.ended ? 'Renew' : p.started ? 'Open' : 'View schedule'}
+              </button>
+            </article>
+          ))
         )}
       </div>
 
@@ -210,14 +255,13 @@ export default function Dashboard() {
             <tbody>
               {todays.length === 0 ? (
                 <tr>
-                  <td className="p-6 text-slate-500" colSpan={4}>
-                    No sessions scheduled today.
-                  </td>
+                  <td className="p-6 text-slate-500" colSpan={4}>No sessions scheduled today.</td>
                 </tr>
               ) : (
                 todays.map(ev => {
                   const start = new Date(ev.dateISO)
                   const end = new Date(ev.endISO)
+                  const now = new Date(nowMs)
                   const canJoin = now >= start && now <= end
                   return (
                     <tr key={ev.id} className="border-t">

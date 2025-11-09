@@ -1,35 +1,51 @@
 // src/pages/admin/AdminDashboard.tsx
 import { useEffect, useState } from 'react'
+import { supabase } from '../../lib/supabaseClient'
 
 export default function AdminDashboard() {
-  const [programs] = useState(4)   // static for now
-  const [applicants, setApplicants] = useState<number | null>(null)
-  const [payments, setPayments] = useState<number | null>(null)
+  const [programs] = useState(4) // static for now
+  const [totalUsers, setTotalUsers] = useState<number | null>(null)
+  const [approvedPayments, setApprovedPayments] = useState<number | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let alive = true
-    async function load() {
+    ;(async () => {
       try {
-        // Replace with real counts when your tables are ready:
-        // const { count: a } = await supabase.from('applications').select('*', { head: true, count: 'exact' })
-        // const { count: p } = await supabase.from('payment_proofs').select('*', { head: true, count: 'exact' })
+        // Count total users (expects you have a `profiles` table synced with auth)
+        const usersQ = supabase
+          .from('profiles')
+          .select('*', { head: true, count: 'exact' })
+
+        // Count approved payments
+        const approvedQ = supabase
+          .from('payment_proofs')
+          .select('*', { head: true, count: 'exact' })
+          .eq('status', 'approved')
+
+        const [{ count: usersCount, error: usersErr }, { count: approvedCount, error: payErr }] =
+          await Promise.all([usersQ, approvedQ])
+
         if (!alive) return
-        setApplicants(0)
-        setPayments(0)
+
+        setTotalUsers(usersErr ? 0 : (usersCount ?? 0))
+        setApprovedPayments(payErr ? 0 : (approvedCount ?? 0))
       } catch {
         if (!alive) return
-        setApplicants(0); setPayments(0)
+        setTotalUsers(0)
+        setApprovedPayments(0)
+      } finally {
+        if (alive) setLoading(false)
       }
-    }
-    load()
+    })()
     return () => { alive = false }
   }, [])
 
   return (
     <section className="grid gap-4 md:grid-cols-3">
       <Card title="Programs">{programs}</Card>
-      <Card title="Applicants">{applicants ?? '—'}</Card>
-      <Card title="Payments">{payments ?? '—'}</Card>
+      <Card title="Total Users">{loading ? '—' : totalUsers}</Card>
+      <Card title="Payments (Approved)">{loading ? '—' : approvedPayments}</Card>
     </section>
   )
 }

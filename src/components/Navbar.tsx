@@ -15,7 +15,7 @@ export default function Navbar() {
   useEffect(() => {
     let alive = true
     async function load() {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session} } = await supabase.auth.getSession()
       if (!alive) return
       setEmail(session?.user?.email ?? null)
       setName((session?.user?.user_metadata as any)?.full_name ?? null)
@@ -39,6 +39,7 @@ export default function Navbar() {
   }, [])
 
   const username = name || (email ? email.split('@')[0] : null)
+  const isAdmin = (email || '').toLowerCase() === 'adming5@gmail.com' // ← only this account sees Admin
 
   const goToHomeHash = (hash: '#reviews' | '#faqs' | '#about') => {
     setDrawerOpen(false)
@@ -98,12 +99,16 @@ export default function Navbar() {
                       >
                         Dashboard
                       </button>
-                      <button
-                        onClick={() => { setMenuOpen(false); navigate('/admin') }}
-                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 text-sm"
-                      >
-                        Admin
-                      </button>
+
+                      {/* Admin is visible ONLY to adming5@gmail.com */}
+                      {isAdmin && (
+                        <button
+                          onClick={() => { setMenuOpen(false); navigate('/admin') }}
+                          className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-100 text-sm"
+                        >
+                          Admin
+                        </button>
+                      )}
                     </div>
                   )}
                 </>

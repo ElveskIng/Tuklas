@@ -30,6 +30,13 @@ const peso = (n: number) =>
   `₱${Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 const fmt = (x: string) => new Date(x).toLocaleString()
 
+/** NEW: safely extract just the reference number from ref_text (e.g., "ref:ABC123; start:...; slot:...") */
+function getRefNumber(refText: string | null | undefined): string | null {
+  if (!refText) return null
+  const m = refText.match(/ref\s*:\s*([^;]+)/i)
+  return m ? m[1].trim() : null
+}
+
 export default function AdminPaymentProofs() {
   const [rows, setRows] = useState<ProofRow[]>([])
   const [users, setUsers] = useState<Record<string, UserLite>>({})
@@ -53,7 +60,7 @@ export default function AdminPaymentProofs() {
       setLoading(true)
 
       // Check current user
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user} } = await supabase.auth.getUser()
       const email = user?.email?.toLowerCase() ?? ''
       // If you used email-based RLS:
       const isEmailAdmin = email === 'adming5@gmail.com'
@@ -250,6 +257,7 @@ export default function AdminPaymentProofs() {
           <div className="mt-5 space-y-3">
             {filtered.map((r) => {
               const u = users[r.user_id]
+              const refNo = getRefNumber(r.ref_text) // NEW
               return (
                 <div key={r.id} className="rounded-2xl border p-4 bg-white shadow-sm">
                   <div className="flex items-center justify-between gap-3">
@@ -283,8 +291,9 @@ export default function AdminPaymentProofs() {
                           <span className="ml-2 text-slate-500">{u?.email || ''}</span>
                           {u?.role ? <span className="ml-2 text-xs text-slate-400">({u.role})</span> : null}
                         </div>
+                        {/* NEW: show only the pure reference number */}
                         <div className="text-xs text-slate-500">
-                          Program: {r.program_id} • Ref: {r.ref_text || '—'}
+                          Program: {r.program_id} • Ref#: {refNo || '—'}
                         </div>
                       </div>
                     </div>
