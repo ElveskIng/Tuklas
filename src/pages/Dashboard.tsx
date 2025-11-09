@@ -205,7 +205,7 @@ export default function Dashboard() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
       <h2 className="text-3xl font-extrabold">My Dashboard</h2>
-      <p className="text-slate-600 mt-2">Welcome {email ?? 'user'} — here are your programs.</p>
+      <p className="text-slate-600 mt-2">Welcome {email ?? 'user'},  here are your programs.</p>
 
       {/* Program cards with countdowns */}
       <div className="mt-6 grid md:grid-cols-2 xl:grid-cols-3 gap-6">
