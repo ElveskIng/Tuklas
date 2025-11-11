@@ -64,8 +64,8 @@ const CURRICULA: Curricula = {
 
 const LEVELS: LevelKey[] = ['beginner', 'intermediate', 'expert']
 const LEVEL_LABEL: Record<LevelKey, string> = { beginner: 'BEGINNER', intermediate: 'INTERMEDIATE', expert: 'EXPERT' }
-const PRICE_TEXT: Record<LevelKey, string> = { beginner: '₱3,000', intermediate: '₱7,000', expert: '₱12,000' }
-const PRICE_NUM: Record<LevelKey, number> = { beginner: 3000, intermediate: 7000, expert: 12000 }
+const PRICE_TEXT: Record<LevelKey, string> = { beginner: '₱2,999', intermediate: '₱5,999', expert: '₱9,999' }
+const PRICE_NUM: Record<LevelKey, number> = { beginner: 2999, intermediate: 5999, expert: 9999 }
 const CREDITS: Record<LevelKey, number> = { beginner: 1, intermediate: 3, expert: 5 }
 
 function peso(n: number) { return `₱${Number(n).toLocaleString()}` }
